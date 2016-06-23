@@ -4,6 +4,7 @@ html
   head
     title Sadistic Timer
     meta(name='description' content='A simple timer to make training periods seem shorter than they are. Get your athletes past mental barriers.')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet' href='css/style.css')
   body
@@ -39,7 +40,7 @@ html
         button.btn.btn-default.show-for-done.is-hidden(data-stateful-container-change='running' type='button') Start
         button.btn.btn-default.show-for-done.is-hidden.right(data-stateful-container-change='start' type='button') Change Settings
 
-    audio.is-hidden#buzzer
+    audio.is-hidden#buzzer(preload='auto')
       source(src='sound/buzzer.mp3')
       source(src='sound/buzzer.ogg')
 
