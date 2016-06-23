@@ -1,7 +1,7 @@
 {
-  "name": "delayed-mirror",
+  "name": "sadistic-timer",
   "version": "1.0.0",
-  "description": "Use WebRTC to show short delay on video; useful for training purposes.",
+  "description": "Play with timer length",
   "main": "index.html",
   "dependencies": {
     "babel-polyfill": "^6.5.0",
@@ -19,16 +19,13 @@
     "webpack-dev-server": "^1.14.0"
   },
   "scripts": {
-    "build": "./node_modules/jade/bin/jade.js index.jade"
+    "build": "./node_modules/jade/bin/jade.js index.jade",
+    "watch": "./node_modules/jade/bin/jade.js index.jade -w"
   },
   "keywords": [
-    "webrtc",
-    "mediastream",
-    "mediastreamrecorder",
-    "delayed-mirror",
-    "dancing",
-    "capoeira",
-    "gymnastics"
+    "timer",
+    "fitness",
+    "monitoring"
   ],
   "author": "Michael Wheeler",
   "license": "ISC"

@@ -7,7 +7,7 @@
 		var a = typeof exports === 'object' ? factory(require("jQuery")) : factory(root["jQuery"]);
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
-})(this, function(__WEBPACK_EXTERNAL_MODULE_3__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -63,55 +63,110 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _control = __webpack_require__(2);
+	var _jquery = __webpack_require__(2);
 
-	var _control2 = _interopRequireDefault(_control);
+	var _jquery2 = _interopRequireDefault(_jquery);
 
-	var _recording = __webpack_require__(4);
+	var _scaledTimer = __webpack_require__(3);
 
-	var _recording2 = _interopRequireDefault(_recording);
+	var _scaledTimer2 = _interopRequireDefault(_scaledTimer);
 
-	var _output = __webpack_require__(5);
+	var _statefulContainer = __webpack_require__(5);
 
-	var _output2 = _interopRequireDefault(_output);
+	var _statefulContainer2 = _interopRequireDefault(_statefulContainer);
 
-	var _buffer = __webpack_require__(6);
-
-	var _buffer2 = _interopRequireDefault(_buffer);
+	__webpack_require__(6);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var control = (0, _control2.default)(),
-	    recording = (0, _recording2.default)(control),
-	    output = (0, _output2.default)(control),
-	    buffer = (0, _buffer2.default)(control.get('delay'));
+	function addZ(n) {
+	  return (n < 10 ? '0' : '') + n;
+	}
 
-	control.onChange = function () {
-	  buffer.setSize(control.get('delay'));
-	  recording.reset();
-	};
+	function msToTime(s) {
+	  var ms = s % 1000;
+	  s = (s - ms) / 1000;
+	  var secs = s % 60;
+	  s = (s - secs) / 60;
+	  var mins = s % 60;
+	  var hrs = (s - mins) / 60;
 
-	recording.ondataavailable = function (blob) {
-	  buffer.add(blob);
-	};
+	  var cent = Math.floor(ms / 10);
 
-	recording.onerror = function () {
-	  output.showError();
-	};
+	  return addZ(hrs) + ':' + addZ(mins) + ':' + addZ(secs) + '.' + addZ(cent);
+	}
 
-	buffer.onTick(function (blob) {
-	  blob && output.showNext(blob);
+	(0, _jquery2.default)(function () {
+	  var currentTimer,
+	      $timers = (0, _jquery2.default)('.js-time'),
+	      audio = document.getElementById('buzzer');
+
+	  (0, _jquery2.default)('.js-stateful-container').each(function () {
+	    (0, _statefulContainer2.default)((0, _jquery2.default)(this), { initialState: 'start' });
+
+	    (0, _jquery2.default)(this).on('state:change', function (ev, newState) {
+	      $timers.fitText(0.6);
+
+	      if (newState == 'running') {
+	        currentTimer.begin();
+	      } else if (newState == 'ready') {
+	        currentTimer.stop();
+	      }
+	    });
+	  });
+
+	  function renderTimer(ms) {
+	    $timers.html(msToTime(ms));
+	  }
+
+	  function clearTimer() {
+	    $timers.html(msToTime(0));
+	  }
+
+	  function flashTimer() {
+	    audio.play();
+	    (0, _jquery2.default)('.js-stateful-container').trigger('state:set', 'done');
+	  }
+
+	  function realTime() {
+	    var min = parseInt((0, _jquery2.default)('#real-min').val()) || 0,
+	        sec = parseInt((0, _jquery2.default)('#real-sec').val()) || 0;
+
+	    return (min * 60 + sec) * 1000 || 1;
+	  }
+
+	  function fakeTime() {
+	    var min = parseInt((0, _jquery2.default)('#fake-min').val()) || 0,
+	        sec = parseInt((0, _jquery2.default)('#fake-sec').val()) || 0;
+
+	    return (min * 60 + sec) * 1000 || 1;
+	  }
+
+	  (0, _jquery2.default)('.js-timer-form').on('submit', function (e) {
+	    e.preventDefault();
+
+	    if (currentTimer) {
+	      currentTimer.stop();
+	    }
+
+	    console.log(realTime(), fakeTime());
+	    currentTimer = (0, _scaledTimer2.default)(realTime(), fakeTime());
+	    currentTimer.onTick = renderTimer;
+	    currentTimer.onStop = clearTimer;
+	    currentTimer.onDone = flashTimer;
+
+	    (0, _jquery2.default)('.js-stateful-container').trigger('state:set', 'ready');
+	  });
 	});
-
-	recording.onstart = function () {
-	  output.clear();
-	  output.buffering();
-	};
-
-	recording.begin();
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -120,144 +175,123 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _jquery = __webpack_require__(3);
+	var _scaler = __webpack_require__(4);
 
-	var _jquery2 = _interopRequireDefault(_jquery);
+	var _scaler2 = _interopRequireDefault(_scaler);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var control = function control() {
-	  var me = undefined,
-	      $form = (0, _jquery2.default)('#control'),
-	      attrs = { width: 640, height: 480 },
-	      readAttrs = function readAttrs() {
-	    attrs.delay = $form.find('[name=delay]').val();
-	  };
+	function scaledTimer(real, fake) {
+	  var me,
+	      timerId,
+	      delay = 50,
+	      scaled = _scaler2.default.exponential([0, real], [0, fake], 1, true),
+	      start;
+
+	  function tick() {
+	    var current = new Date(),
+	        value = scaled.calc(current - start);
+	    me.onTick(value);
+
+	    if (value === fake) {
+	      done();
+	    }
+	  }
+
+	  function stopTicking() {
+	    if (timerId !== undefined) {
+	      window.clearInterval(timerId);
+	    }
+	    timerId = undefined;
+	  }
+
+	  function done() {
+	    stopTicking();
+	    me.onDone();
+	  }
 
 	  me = {
-	    get: function get(name) {
-	      return attrs[name];
+	    begin: function begin() {
+	      if (timerId !== undefined) {
+	        return;
+	      }
+	      start = new Date();
+	      timerId = window.setInterval(tick, delay);
 	    },
-	    onChange: function onChange() {}
+	    stop: function stop() {
+	      stopTicking();
+	      me.onStop();
+	    },
+	    onTick: function onTick() {},
+	    onDone: function onDone() {},
+	    onStop: function onStop() {}
 	  };
 
-	  $form.on('submit', function (e) {
-	    e.preventDefault();
-	    readAttrs();
-	    me.onChange();
-	  });
-
-	  $form.on('change', 'input', function (e) {
-	    $form.submit();
-	  });
-
-	  $form.on('click', '[data-set-width]', function (e) {
-	    var width = (0, _jquery2.default)(this).data().setWidth,
-	        height = (0, _jquery2.default)(this).data().setHeight;
-
-	    e.preventDefault();
-
-	    attrs.width = width;
-	    attrs.height = height;
-
-	    me.onChange();
-	  });
-
-	  readAttrs();
 	  return me;
-	};
+	}
 
-	exports.default = control;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
+	exports.default = scaledTimer;
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var recording = function recording(control) {
-	  var me = undefined,
-	      mediaRecorder = null,
-	      errBack = function errBack(error) {
-	    console.log("Video capture error: ", error.code);
-	  };
 
-	  me = {
-	    begin: function begin() {
-	      var _arguments = arguments;
+	var _jquery = __webpack_require__(2);
 
-	      var videoObj = { video: true };
+	var _jquery2 = _interopRequireDefault(_jquery);
 
-	      if (navigator.getUserMedia) {
-	        // Standard
-	        navigator.getUserMedia(videoObj, function (stream) {
-	          mediaRecorder = new MediaStreamRecorder(stream);
-	          mediaRecorder.mimeType = 'video/webm';
-	          mediaRecorder.bitsPerSecond = 12800;
-	          me.setup();
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	          mediaRecorder.ondataavailable = function (blob) {
-	            me.ondataavailable(blob);
-	          };
+	var scaler = {
+	  normalize: function normalize(domain, range) {
+	    return {
+	      normal_domain: Math.abs(domain[1] - domain[0]),
+	      normal_range: Math.abs(range[1] - range[0]),
+	      min_domain: Math.min(domain[0], domain[1]),
+	      min_range: Math.min(range[0], range[1]),
+	      max_range: Math.max(range[0], range[1])
+	    };
+	  },
 
-	          me.start();
-	        }, function () {
-	          me.onerror(_arguments);
-	        });
-	      } else {
-	        me.onerror();
+	  exponential: function exponential(domain, range, power, isConstrained) {
+	    var me = _jquery2.default.extend(scaler.normalize(domain, range), {
+	      calc: function calc(value) {
+	        var normal_num = value - me.min_domain,
+	            inter = normal_num / me.normal_domain;
+
+	        return me.constrain(me.min_range + me.normal_range * Math.pow(inter, power));
+	      },
+
+	      constrain: function constrain(value) {
+	        if (!isConstrained) {
+	          return value;
+	        }
+
+	        if (value > me.max_range) {
+	          value = me.max_range;
+	        } else if (value < me.min_range) {
+	          value = me.min_range;
+	        }
+
+	        return value;
 	      }
+	    });
 
-	      me.begin = me.start;
-	    },
-	    stop: function stop() {
-	      if (!mediaRecorder) {
-	        return;
-	      }
-	      mediaRecorder.stop();
-	    },
-	    setup: function setup() {
-	      if (!mediaRecorder) {
-	        return;
-	      }
-	      mediaRecorder.width = control.get('width');
-	      mediaRecorder.height = control.get('height');
-	    },
-	    start: function start() {
-	      if (!mediaRecorder) {
-	        return;
-	      }
-	      mediaRecorder.start(1000);
-	      me.onstart();
-	    },
-	    onstart: function onstart() {},
-	    reset: function reset() {
-	      me.stop();
-	      me.setup();
-	      me.start();
-	    },
-	    ondataavailable: function ondataavailable(blob) {},
-	    onerror: function onerror() {}
-	  };
+	    return me;
+	  },
 
-	  return me;
+	  linear: function linear(domain, range) {
+	    return scaler.exponential(domain, range, 1);
+	  }
 	};
 
-	var videoObj = { "video": true },
-	    errBack = function errBack(error) {
-	  console.log("Video capture error: ", error.code);
-	};
-
-	exports.default = recording;
+	exports.default = scaler;
 
 /***/ },
 /* 5 */
@@ -269,112 +303,105 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _jquery = __webpack_require__(3);
+	var _jquery = __webpack_require__(2);
 
 	var _jquery2 = _interopRequireDefault(_jquery);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var output = function output(control) {
-	  var me = undefined,
-	      $el = (0, _jquery2.default)('#output'),
-	      templateText = "<video class='video' width='WIDTHpx' height='HEIGHTpx' src='URL'></video>",
-	      $curr = undefined,
-	      $prev = undefined,
-	      _buffering = false;
-
-	  return me = {
-	    showNext: function showNext(blob) {
-	      var out = templateText,
-	          blobUrl = URL.createObjectURL(blob),
-	          $rem = $prev;
-
-	      if (_buffering) {
-	        _buffering = false;
-	        $el.html('');
-	      }
-
-	      out = out.replace(/WIDTH/, control.get('width'));
-	      out = out.replace(/HEIGHT/, control.get('height'));
-	      out = out.replace(/URL/, blobUrl);
-
-	      $prev = $curr;
-	      $curr = (0, _jquery2.default)(out);
-	      $el.append($curr);
-	      $el.css({ width: control.get('width'), height: control.get('height') });
-	      $curr.get(0).play();
-	      $rem && $rem.remove();
-	    },
-	    showError: function showError() {
-	      var output = (0, _jquery2.default)('#error-message').html();
-	      $el.html(output);
-	    },
-	    clear: function clear() {
-	      $curr && $curr.remove();
-	      $prev && $prev.remove();
-	      $el.css({ width: control.get('width'), height: control.get('height') });
-	      $el.html('');
-	    },
-	    buffering: function buffering() {
-	      _buffering = true;
-	      $el.html('Buffering...');
-	    }
+	function statefulContainer($el, opts) {
+	  var changeState, currentState, prevState, render;
+	  prevState = null;
+	  currentState = null;
+	  render = function render() {
+	    $el.addClass(currentState).removeClass(prevState);
+	    $el.find(".hide-for-" + currentState).addClass('is-hidden');
+	    $el.find(".show-for-" + currentState).removeClass('is-hidden');
+	    $el.find(".hide-for-" + prevState).removeClass('is-hidden');
+	    return $el.find(".show-for-" + prevState).addClass('is-hidden');
 	  };
-	};
 
-	exports.default = output;
+	  changeState = function changeState(newState) {
+	    if (newState === currentState) {
+	      return;
+	    }
+	    prevState = currentState;
+	    currentState = newState;
+
+	    render();
+	    $el.trigger('state:change', [currentState, prevState]);
+	  };
+
+	  $el.on('click', '[data-stateful-container-change]', function (e) {
+	    var newState;
+	    e.preventDefault();
+	    newState = (0, _jquery2.default)(this).data('stateful-container-change');
+	    if (newState) {
+	      changeState(newState);
+	    }
+	  });
+
+	  $el.on('state:set', function (e, newState) {
+	    if (newState) {
+	      changeState(newState);
+	    }
+	  });
+
+	  changeState(opts.initialState || 'start');
+	}
+
+	exports.default = statefulContainer;
 
 /***/ },
 /* 6 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
-	var buffer = function buffer(size) {
-	  var me = undefined,
-	      list = undefined,
-	      callbacks = [],
-	      emit = undefined;
+	var _jquery = __webpack_require__(2);
 
-	  emit = function emit(item) {
-	    var i = undefined,
-	        ii = undefined;
+	var _jquery2 = _interopRequireDefault(_jquery);
 
-	    for (i = 0, ii = callbacks.length; i < ii; i += 1) {
-	      callbacks[i](item);
-	    }
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	(function ($) {
+
+	  $.fn.fitText = function (kompressor, options) {
+
+	    // Setup options
+	    var compressor = kompressor || 1,
+	        settings = $.extend({
+	      'minFontSize': Number.NEGATIVE_INFINITY,
+	      'maxFontSize': Number.POSITIVE_INFINITY
+	    }, options);
+
+	    return this.each(function () {
+
+	      // Store the object
+	      var $this = $(this);
+
+	      // Resizer() resizes items based on the object width divided by the compressor * 10
+	      var resizer = function resizer() {
+	        $this.css('font-size', Math.max(Math.min($this.width() / (compressor * 10), parseFloat(settings.maxFontSize)), parseFloat(settings.minFontSize)));
+	      };
+
+	      // Call once to set.
+	      resizer();
+
+	      // Call on resize. Opera debounces their resize by default.
+	      $(window).on('resize.fittext orientationchange.fittext', resizer);
+	    });
 	  };
-
-	  me = {
-	    next: function next() {
-	      return list.shift();
-	    },
-	    reset: function reset() {
-	      var i = undefined;
-	      list = new Array(size);
-	    },
-	    add: function add(item) {
-	      list.push(item);
-
-	      while (list.length >= size) {
-	        emit(me.next());
-	      }
-	    },
-	    setSize: function setSize(val) {
-	      size = parseInt(val, 10);
-	      me.reset();
-	    },
-	    onTick: function onTick(callback) {
-	      callbacks.push(callback);
-	    }
-	  };
-
-	  me.setSize(size);
-
-	  return me;
-	};
-
-	module.exports = buffer;
+	})(jQuery); /*global jQuery */
+	/*!
+	* FitText.js 1.2
+	*
+	* Copyright 2011, Dave Rupert http://daverupert.com
+	* Released under the WTFPL license
+	* http://sam.zoy.org/wtfpl/
+	*
+	* Date: Thu May 05 14:23:00 2011 -0600
+	*/
 
 /***/ }
 /******/ ])

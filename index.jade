@@ -2,146 +2,49 @@ doctype html
 
 html
   head
-    title Delayed Mirror
-    meta(name='description' content='Use a slightly delayed video to practice dance, gymnastics, and martial arts drills')
+    title Sadistic Timer
+    meta(name='description' content='A simple timer to make training periods seem shorter than they are. Get your athletes past mental barriers.')
     link(rel='stylesheet' href='node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet' href='css/style.css')
   body
-    nav.navbar.navbar-default
-      a.navbar-brand Delayed Mirror
+    .container.js-stateful-container
+      .card.show-for-start
+        form.js-timer-form
+          .form-group
+            div
+              label Real Time
+            input#real-min(type='number' name='real-min' value='0')
+            span :
+            input#real-sec(type='number' name='real-sec' value='00' required=true)
+          .form-group
+            div
+              label Fake Time
+            input#fake-min(type='number' name='fake-min' value='0')
+            span :
+            input#fake-sec(type='number' name='fake-sec' required=true value='00')
 
-    .container
-      form.form-inline(id='control')
-        .form-group
-          span Play video from
-          input.form-control(name='delay' type='number' min=1 max=20 step=1 value=5)
-          span seconds in the past
+          input.btn.btn-default(type='submit')
+      .card.show-for-ready.is-hidden
+        .js-time.jumbotron 00:00:00.00
+      .show-for-running.is-hidden
+        .js-time.jumbotron 00:00:00.00
+      .card.completed.show-for-done.is-hidden
+        .js-time.jumbotron 00:00:00.00
+      .button-group
+        button.btn.btn-default.show-for-ready.is-hidden(data-stateful-container-change='running' type='button') Start
+        button.btn.btn-default.show-for-ready.is-hidden.right(data-stateful-container-change='start' type='button') Change Settings
 
-        ul.spaced-list
-          li
-            a(data-set-width=320 data-set-height=240 href='#') 320x240
-          li
-            a(data-set-width=640 data-set-height=480 href='#') 640x480
-          li
-            a(data-set-width=800 data-set-height=600 href='#') 800x600
-          li
-            a(data-set-width=1024 data-set-height=786 href='#') 1024x786
+        button.btn.btn-default.show-for-running.is-hidden(data-stateful-container-change='ready' type='button') Stop
 
-      .clear
-      div#output.video-container.
-        Loading... Please allow access to your camera.
+        button.btn.btn-default.show-for-done.is-hidden(data-stateful-container-change='running' type='button') Start
+        button.btn.btn-default.show-for-done.is-hidden.right(data-stateful-container-change='start' type='button') Change Settings
 
-      .row.body-content
-        .col-md-8
-          .jumbotron
-            h1 Delayed Mirror
-            p.
-              A delayed mirror is a nice tool for practicing movement. I use it to get near-realtime feedback when
-              practicing movements that are impossible or impractical to watch in a mirror.
-
-            p.
-              Use this tool to see what your coach sees, and make corrections to your form and technique. Dance drills, gymnastics drills,
-              and martial arts drills - any sort of technical practice - can all be improved with this helpful feedback.
-
-          h3 Why a delayed mirror?
-
-          p.
-            A common criticism of novice weight lifters is that they only train the muscles that they can see in the mirror.
-            The chest, arms, and abs get a lot of attention at the expense of their contrasting muscles, which leads to
-            imbalance.  Major important muscle groups get completely neglected in favor of what you can show off in a
-            bathroom mirror selfie.
-
-          p.
-            The same can be said for many forms of training - whether for strength or technique. A mirror can be a great
-            tool, but if overused we end up neglecting important details that are only visible from an outside perspective.
-            The great strengths of the immediate feedback of a mirror must always be offset by the tradeoff of how
-            fleeting the vision is.
-
-          p.
-            The <a href='https://www.iadms.org/?400'>pros and cons of using a mirror for dancing</a> have been studied at
-            length. Without being so scientific, I can say in my own experience that <i>a mirror doesn't always show
-            me how I look.</i> You might relate to this if you've ever seen a video of yourself in a performance and
-            been surprised by they way you move, stand, and hold yourself.
-
-          p.
-            A delayed mirror is a tool to help you get fast feedback, from an angle a mirror could never show you.
-            A normal mirror's feedback is so instantaneous that we can't be honest in front of it, we subconsciously
-            and immediately shape ourselves to it. A simple one second delay breaks the connection, and gives
-            us a new perspective - one that is closer to how the rest of the world perceives us.
-
-          h3 Alternatives
-          p.
-            <i>delayed-mirror.com</i> is a simple tool with modest goals - be free, be easy to use, and help people
-            drill better. It relies on some features that are not widely supported in all browsers and on all hardware,
-            however, so it's not always the right tool for the job. If you find that you need something better, you 
-            probably want a native solution that matches your hardware more specifically.
-
-          ul
-            li.
-              I've used <a href='https://itunes.apple.com/us/app/bam-video-delay/id517673842?mt=8'>BaM Video Delay</a> for iOS
-            li.
-              <a href='https://play.google.com/store/apps/details?id=com.appyhand.videocoach&hl=en'>Video Coach - Delay Mirror</a> is well reviewed on Android
-            li.
-              <a href='http://www.kinovea.org/'>Kinovea</a> is an open source solution available on Windows.
-            li.
-              <a href='http://www.zachpoff.com/software/live-video-delay/'>Live Video Delay</a> is a Mac OS X native project.
+    audio.is-hidden#buzzer
+      source(src='sound/buzzer.mp3')
+      source(src='sound/buzzer.ogg')
 
 
-          h3 Privacy
-          p.
-            The video on this website is never stored, and never sent to a server. It is simply held in memory on your
-            device just long enough to replay it, and then destroyed.
-
-          p.
-            Delayed Mirror is also open source and transparent.
-            <a href='https://github.com/wheeyls/delayed-mirror'>View and make changes to the source yourself</a>
-            if you'd like to spin up your own server, or request a change in functionality.
-
-          h3 About
-          ul.spaced-list
-            li
-              a(href='https://github.com/wheeyls/delayed-mirror') GitHub
-            li
-              a(href='mailto:mt.maui@gmail.com') Contact
-            li
-              a(href='http://hacki.ly') Blog
-
-        .col-md-4
-          script(async=true src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js")
-          ins(class="adsbygoogle" style="display:block" data-ad-client="#{process.env.DELAYED_AD_CLIENT}" data-ad-slot="#{process.env.DELAYED_AD_SLOT}" data-ad-format="auto")
-          script.
-            (adsbygoogle = window.adsbygoogle || []).push({});
-
-    script#error-message(type='text/template')
-      .panel.panel-default
-        .panel-body
-          .alert.alert-danger(role='alert') We're sorry, there was an error getting access to your camera.
-
-          h3 Support
-          p.
-            Sometimes <a href='#' onclick='window.location.reload();'>refreshing your browser</a> can solve the problem.
-
-          p.
-            This website uses relatively new browser features to gain access to the camera, and is not supported on all devices.
-          p.
-            It <strong>will not work</strong> on:
-
-          ul
-            li Internet Explorer
-            li Safari
-            li iOS
-
-          p.
-            It <strong>has been tested successfully</strong> on:
-
-          ul
-            li Chrome
-            li Firefox
-            li Opera
-            li Some Android Browsers (not all versions)
-
-    script(type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js')
-    script(type='text/javascript' src='node_modules/msr/MediaStreamRecorder.min.js')
+    script(type='text/javascript' src='js/jquery.js')
     script(type='text/javascript' src='js/bundle.js')
 
     script(type='text/javascript').
@@ -150,5 +53,5 @@ html
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-      ga('create', '#{process.env.DELAYED_MIRROR_ANALYTICS}', 'auto');
+      ga('create', '#{process.env.SADISTIC_TRAINER_ANALYTICS}', 'auto');
       ga('send', 'pageview');
