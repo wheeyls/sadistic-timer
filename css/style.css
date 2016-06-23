@@ -22,3 +22,11 @@
 .right {
   float: right;
 }
+
+#real-min, #fake-min {
+  width: 30px;
+}
+
+#real-sec, #fake-sec {
+  width: 60px;
+}
