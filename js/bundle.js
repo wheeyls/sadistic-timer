@@ -83,6 +83,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return (n < 10 ? '0' : '') + n;
 	}
 
+	function hideSearch() {
+	  window.setTimeout(function () {
+	    window.scrollTo(0, 1);
+	  }, 0);
+	}
+
 	function msToTime(s) {
 	  var ms = s % 1000;
 	  s = (s - ms) / 1000;
@@ -93,7 +99,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var cent = Math.floor(ms / 10);
 
-	  return addZ(hrs) + ':' + addZ(mins) + ':' + addZ(secs) + '.' + addZ(cent);
+	  if (hrs > 0) {
+	    return addZ(hrs) + ':' + addZ(mins) + ':' + addZ(secs) + '.' + addZ(cent);
+	  } else {
+	    return addZ(mins) + ':' + addZ(secs) + '.' + addZ(cent);
+	  }
 	}
 
 	(0, _jquery2.default)(function () {
@@ -106,6 +116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    (0, _jquery2.default)(this).on('state:change', function (ev, newState) {
 	      $timers.fitText(0.6);
+	      hideSearch();
 
 	      if (newState == 'running') {
 	        currentTimer.begin();

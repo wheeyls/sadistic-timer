@@ -4,7 +4,8 @@ html
   head
     title Sadistic Timer
     meta(name='description' content='A simple timer to make training periods seem shorter than they are. Get your athletes past mental barriers.')
-    meta(name='viewport' content='width=device-width, initial-scale=1')
+    meta(name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1')
+    meta(name='apple-mobile-web-app-capable' content='yes')
     link(rel='stylesheet' href='node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet' href='css/style.css')
   body
@@ -26,11 +27,11 @@ html
 
           input.btn.btn-default(type='submit')
       .card.show-for-ready.is-hidden
-        .js-time.jumbotron 00:00:00.00
+        .js-time.jumbotron 00:00.00
       .show-for-running.is-hidden
-        .js-time.jumbotron 00:00:00.00
+        .js-time.jumbotron 00:00.00
       .card.completed.show-for-done.is-hidden
-        .js-time.jumbotron 00:00:00.00
+        .js-time.jumbotron 00:00.00
       .button-group
         button.btn.btn-default.show-for-ready.is-hidden(data-stateful-container-change='running' type='button') Start
         button.btn.btn-default.show-for-ready.is-hidden.right(data-stateful-container-change='start' type='button') Change Settings
